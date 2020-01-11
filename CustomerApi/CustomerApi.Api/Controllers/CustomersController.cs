@@ -36,7 +36,7 @@ namespace CustomerApi.Api.Controllers
             return await _customerBusinessLayer.GetCustomerAsync(id);
         }
 
-        // GET /customers/search?searchPhrase=jack
+        // GET /customers/search?searchPhrase=Jack
         [HttpGet]
         [Route("search")]
         public async Task<ActionResult<IEnumerable<CustomerModel>>> Search([FromQuery] string searchPhrase)

@@ -21,5 +21,7 @@ namespace CustomerApi.Abstractions.Models
 
         [Required]
         public DateTime LastUpdatedDate { get; set; }
+
+        public bool IsDeleted { get; set; } = false;
     }
 }
