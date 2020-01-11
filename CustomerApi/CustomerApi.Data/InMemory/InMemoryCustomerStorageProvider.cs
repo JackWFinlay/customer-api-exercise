@@ -24,7 +24,6 @@ namespace CustomerApi.Data.InMemory
         /// <returns></returns>
         public async Task AddCustomerAsync(CustomerDto customer)
         {
-            customer.LastUpdatedDate = DateTime.UtcNow;
             _context.Add(customer);
 
             await _context.SaveChangesAsync();
@@ -37,8 +36,6 @@ namespace CustomerApi.Data.InMemory
         /// <returns></returns>
         public async Task DeleteCustomerAsync(CustomerDto customer)
         {
-            customer.LastUpdatedDate = DateTime.UtcNow;
-            customer.IsDeleted = true;
             _context.Update(customer);
 
             await _context.SaveChangesAsync();
@@ -101,7 +98,6 @@ namespace CustomerApi.Data.InMemory
 
             if (foundCustomer != null)
             { 
-                customer.LastUpdatedDate = DateTime.UtcNow;
                 _context.Update(customer);
                 await _context.SaveChangesAsync();
             }       

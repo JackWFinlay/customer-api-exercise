@@ -28,6 +28,7 @@ namespace CustomerApi.Business
         public async Task AddCustomerAsync(CustomerModel customer)
         {
             CustomerDto customerDto = _customerMapper.Map(customer);
+            customerDto.LastUpdatedDate = DateTime.UtcNow;
 
             await _storageProvider.AddCustomerAsync(customerDto);
         }
@@ -43,6 +44,7 @@ namespace CustomerApi.Business
             CustomerDto customerDto = _customerMapper.Map(customer);
 
             customerDto.CustomerId = customerId;
+            customerDto.LastUpdatedDate = DateTime.UtcNow;
 
             await _storageProvider.UpdateCustomerAsync(customerDto);
         }
@@ -58,6 +60,8 @@ namespace CustomerApi.Business
 
             if (customerDto != null)
             {
+                customerDto.LastUpdatedDate = DateTime.UtcNow;
+                customerDto.IsDeleted = true;
                 await _storageProvider.DeleteCustomerAsync(customerDto);
             }
         }
