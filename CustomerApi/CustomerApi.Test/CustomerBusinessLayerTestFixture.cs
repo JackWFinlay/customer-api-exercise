@@ -5,6 +5,7 @@ using CustomerApi.Data.InMemory;
 using Moq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,11 +18,12 @@ namespace CustomerApi.Test
         
         public CustomerBusinessLayer CustomerBusinessLayer;
         public const string CustomerGuid = "08F40D3F-4E8D-4DC8-982B-1CD7960EFB84";
+        public const string SearchTerm = "Jack";
 
         public static readonly CustomerModel InputCustomerModel = new CustomerModel()
         {
             DateOfBirth = DateTime.Parse("1993-05-22T12:00:00Z"),
-            FirstName = "Jack",
+            FirstName = SearchTerm,
             LastName = "Finlay"
         };
 
@@ -34,7 +36,7 @@ namespace CustomerApi.Test
         {
             CustomerId = new Guid(CustomerGuid),
             DateOfBirth = DateTime.Parse("1993-05-22T12:00:00Z"),
-            FirstName = "Jack",
+            FirstName = SearchTerm,
             LastName = "Finlay"
         };
 
@@ -45,7 +47,7 @@ namespace CustomerApi.Test
         {
             CustomerId = new Guid(CustomerGuid),
             DateOfBirth = DateTime.Parse("1993-05-22T12:00:00Z"),
-            FirstName = "Jack",
+            FirstName = SearchTerm,
             LastName = "Finlay",
             LastUpdatedDate = DateTime.UtcNow
         };
@@ -68,13 +70,18 @@ namespace CustomerApi.Test
             StorageProviderMock.Setup(mock => mock.GetAllCustomersAsync())
                                .Returns(_customerDtosTask);
 
+            // We look for the specific Guid in the tests, so we have to be able to test for that exact one,
+            // and all the others should return as a miss.
             StorageProviderMock.Setup(mock => mock.GetCustomerAsync(It.Is<Guid>(g => g.Equals(new Guid(CustomerGuid)))))
                                .Returns(_customerDtoSingleTask);
             StorageProviderMock.Setup(mock => mock.GetCustomerAsync(It.Is<Guid>(g => !g.Equals(new Guid(CustomerGuid)))))
                                .Returns(Task.FromResult<CustomerDto>(null));
 
-            StorageProviderMock.Setup(mock => mock.SearchCustomersAsync(It.IsAny<string>()))
+            // We want to look for this particular search term as that's what our models above match (in this mock).
+            StorageProviderMock.Setup(mock => mock.SearchCustomersAsync(It.Is<string>(s => s.Equals(SearchTerm))))
                                .Returns(_customerDtosTask);
+            StorageProviderMock.Setup(mock => mock.SearchCustomersAsync(It.Is<string>(s => !s.Equals(SearchTerm))))
+                               .Returns(Task.FromResult(Enumerable.Empty<CustomerDto>()));
 
             StorageProviderMock.Setup(mock => mock.UpdateCustomerAsync(It.IsAny<CustomerDto>()))
                                .Returns(Task.CompletedTask);

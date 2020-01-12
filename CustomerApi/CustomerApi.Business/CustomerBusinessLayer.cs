@@ -52,12 +52,23 @@ namespace CustomerApi.Business
         /// <returns></returns>
         public async Task UpdateCustomerAsync(Guid customerId, CustomerModel customer)
         {
-            CustomerDto customerDto = _customerMapper.Map(customer);
+            // We want to check if the item exists, 
+            // or there will an exception thrown when trying to update a record doesn't exist.
+            // This is here as controlling the action to take on a missing record is a business logic decision.
+            CustomerDto foundCustomer = await _storageProvider.GetCustomerAsync(customerId);
 
-            customerDto.CustomerId = customerId;
-            customerDto.LastUpdatedDate = DateTime.UtcNow;
+            if (foundCustomer == null)
+            {
+                throw new ArgumentException($"Supplied Customer does not exist for Id {customer.CustomerId}. Perhaps you wanted to call Add Customer instead?");
+            }
 
-            await _storageProvider.UpdateCustomerAsync(customerDto);
+            // Ideally we would do this another way, but there is only a few fields to map, so this is faster.
+            foundCustomer.FirstName = customer.FirstName;
+            foundCustomer.LastName = customer.LastName;
+            foundCustomer.DateOfBirth = customer.DateOfBirth;
+            foundCustomer.LastUpdatedDate = DateTime.UtcNow;
+
+            await _storageProvider.UpdateCustomerAsync(foundCustomer);
         }
 
         /// <summary>

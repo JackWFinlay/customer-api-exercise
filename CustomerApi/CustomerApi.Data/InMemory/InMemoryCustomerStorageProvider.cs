@@ -92,15 +92,8 @@ namespace CustomerApi.Data.InMemory
         /// <returns></returns>
         public async Task UpdateCustomerAsync(CustomerDto customer)
         {
-            // We want to check if the item exists, 
-            // or there will an exception thrown when trying to update a record doesn't exist.
-            CustomerDto foundCustomer = await _context.Customers.FindAsync(customer.CustomerId);
-
-            if (foundCustomer != null)
-            { 
-                _context.Update(customer);
-                await _context.SaveChangesAsync();
-            }       
+            _context.Update(customer);
+            await _context.SaveChangesAsync();
         }
     }
 }

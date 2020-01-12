@@ -119,5 +119,73 @@ namespace CustomerApi.Test
             customerModelResult.Should()
                 .BeNull();
         }
+
+        [Fact]
+        public void SearchCustomersAsync_CustomerExistsForSearchTerm_ReturnsEnumerableOfCustomerModels()
+        {
+            CustomerBusinessLayer businessLayer = _fixture.CustomerBusinessLayer;
+            string searchTerm = CustomerBusinessLayerTestFixture.SearchTerm;
+            IEnumerable<CustomerModel> customerModels = _fixture.CustomerModels;
+            IEnumerable<CustomerModel> customerModelsResult = Enumerable.Empty<CustomerModel>();
+
+            Func<Task> test = async () =>
+            {
+                customerModelsResult = await businessLayer.SearchCustomersAsync(searchTerm);
+            };
+
+            test.Should()
+                .NotThrow();
+
+            customerModelsResult.Should()
+                .NotBeNullOrEmpty()
+                .And
+                .BeEquivalentTo(customerModels);
+        }
+
+        [Fact]
+        public void SearchCustomersAsync_CustomerNonExistant_ReturnsEmptyEnumerable()
+        {
+            CustomerBusinessLayer businessLayer = _fixture.CustomerBusinessLayer;
+            string searchTerm = "John";
+            IEnumerable<CustomerModel> customerModels = _fixture.CustomerModels;
+            IEnumerable<CustomerModel> customerModelsResult = Enumerable.Empty<CustomerModel>();
+
+            Func<Task> test = async () =>
+            {
+                customerModelsResult = await businessLayer.SearchCustomersAsync(searchTerm);
+            };
+
+            test.Should()
+                .NotThrow();
+
+            customerModelsResult.Should()
+                .BeEmpty();
+        }
+
+        [Fact]
+        public void UpdateCustomerAsync_ExistingCustomer_UpdatesCustomer()
+        {
+            CustomerBusinessLayer businessLayer = _fixture.CustomerBusinessLayer;
+            CustomerModel customerModel = CustomerBusinessLayerTestFixture.InputCustomerModel;
+            Guid id = new Guid(CustomerBusinessLayerTestFixture.CustomerGuid);
+
+            Func<Task> test = async () => await businessLayer.UpdateCustomerAsync(id, customerModel);
+
+            test.Should()
+                .NotThrow();
+        }
+
+        [Fact]
+        public void UpdateCustomerAsync_NonExistantCustomer_UpdatesCustomer()
+        {
+            CustomerBusinessLayer businessLayer = _fixture.CustomerBusinessLayer;
+            CustomerModel customerModel = CustomerBusinessLayerTestFixture.InputCustomerModel;
+            Guid id = Guid.NewGuid();
+
+            Func<Task> test = async () => await businessLayer.UpdateCustomerAsync(id, customerModel);
+
+            test.Should()
+                .Throw<ArgumentException>();
+        }
     }
 }

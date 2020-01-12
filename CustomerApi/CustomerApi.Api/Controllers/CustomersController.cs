@@ -1,6 +1,7 @@
 ﻿using CustomerApi.Abstractions.Interfaces;
 using CustomerApi.Abstractions.Models;
 using CustomerApi.Business;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -24,12 +25,17 @@ namespace CustomerApi.Api.Controllers
 
         // GET /customers
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+
         public async Task<ActionResult<IEnumerable<CustomerModel>>> Get()
         {
             return await GetOrThrowErrorAsync(_customerBusinessLayer.GetAllCustomersAsync());
         }
 
         // GET /customers/0f32959d-0e54-47f2-9da4-d6c0a52ca070
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpGet("{id}")]
         public async Task<ActionResult<CustomerModel>> Get(Guid id)
         {
@@ -39,6 +45,8 @@ namespace CustomerApi.Api.Controllers
         // GET /customers/search?searchPhrase=Jack
         [HttpGet]
         [Route("search")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IEnumerable<CustomerModel>>> Search([FromQuery] string searchPhrase)
         {
             return await GetOrThrowErrorAsync(_customerBusinessLayer.SearchCustomersAsync(searchPhrase), searchPhrase);
@@ -46,23 +54,47 @@ namespace CustomerApi.Api.Controllers
 
         // POST /customers
         [HttpPost]
-        public async Task Post([FromBody] CustomerModel customer)
+        [ProducesResponseType(StatusCodes.Status202Accepted)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> Post([FromBody] CustomerModel customer)
         {
-            await _customerBusinessLayer.AddCustomerAsync(customer);
+            try
+            {
+                await _customerBusinessLayer.AddCustomerAsync(customer);
+                return Accepted();
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogError(ex, "Error adding customer");
+                return BadRequest("Could not add customer");
+            }
         }
 
         // PUT /customers/0F906772-CADA-40A7-BD59-B47DDD1C75B0
         [HttpPut("{customerId}")]
+        [ProducesResponseType(StatusCodes.Status202Accepted)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task Put(Guid customerId, [FromBody] CustomerModel customer)
         {
-            await _customerBusinessLayer.UpdateCustomerAsync(customerId, customer);
+            try
+            {
+                await _customerBusinessLayer.UpdateCustomerAsync(customerId, customer);
+                Accepted();
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogError(ex, "Error updating customer");
+                BadRequest($"Could not update customer {customerId}");
+            }
         }
 
         // DELETE /customers/0F906772-CADA-40A7-BD59-B47DDD1C75B0
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status202Accepted)]
         public async Task Delete(Guid id)
         {
-             await _customerBusinessLayer.DeleteCustomerAsync(id);
+            await _customerBusinessLayer.DeleteCustomerAsync(id);
+            Accepted();
         }
 
         private async Task<ActionResult<IEnumerable<CustomerModel>>> GetOrThrowErrorAsync(Task<IEnumerable<CustomerModel>> task, string searchPhrase = null)
