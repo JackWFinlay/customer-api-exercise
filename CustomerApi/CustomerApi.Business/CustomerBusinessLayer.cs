@@ -30,6 +30,17 @@ namespace CustomerApi.Business
             CustomerDto customerDto = _customerMapper.Map(customer);
             customerDto.LastUpdatedDate = DateTime.UtcNow;
 
+            // Look up if the id exists for a record already, if one was set in the model.
+            if (!customerDto.CustomerId.Equals(Guid.Empty))
+            {
+                CustomerDto existingCustomer = await _storageProvider.GetCustomerAsync(customerDto.CustomerId);
+
+                if (existingCustomer != null)
+                {
+                    throw new ArgumentException($"Existing customer for customterId {customerDto.CustomerId}, do not specify customerId if you want one to be generated for you.");
+                }
+            }
+
             await _storageProvider.AddCustomerAsync(customerDto);
         }
 
@@ -56,7 +67,7 @@ namespace CustomerApi.Business
         /// <returns></returns>
         public async Task DeleteCustomerAsync(Guid customerId)
         {
-            CustomerDto customerDto = await _storageProvider.GetCustomer(customerId);
+            CustomerDto customerDto = await _storageProvider.GetCustomerAsync(customerId);
 
             if (customerDto != null)
             {
@@ -75,7 +86,7 @@ namespace CustomerApi.Business
         {
             CustomerModel customerModel = null;
 
-            CustomerDto customerDto = await _storageProvider.GetCustomer(customerId);
+            CustomerDto customerDto = await _storageProvider.GetCustomerAsync(customerId);
 
             if (customerDto != null)
             {
@@ -94,7 +105,7 @@ namespace CustomerApi.Business
         {
             IEnumerable<CustomerModel> customerModels = Enumerable.Empty<CustomerModel>();
             
-            IEnumerable<CustomerDto> customerDtos = await _storageProvider.SearchCustomers(searchPhrase);
+            IEnumerable<CustomerDto> customerDtos = await _storageProvider.SearchCustomersAsync(searchPhrase);
 
             if (customerDtos.Any())
             {
@@ -112,7 +123,7 @@ namespace CustomerApi.Business
         {
             IEnumerable<CustomerModel> customerModels = Enumerable.Empty<CustomerModel>();
             
-            IEnumerable<CustomerDto> customerDtos = await _storageProvider.GetAllCustomers();
+            IEnumerable<CustomerDto> customerDtos = await _storageProvider.GetAllCustomersAsync();
 
             if (customerDtos.Any())
             {

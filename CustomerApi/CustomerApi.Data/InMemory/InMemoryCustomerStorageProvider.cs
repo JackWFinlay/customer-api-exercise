@@ -45,7 +45,7 @@ namespace CustomerApi.Data.InMemory
         /// Returns all customers.
         /// </summary>
         /// <returns><see cref="Task{IEnumerable{CustomerDto}}"/></returns>
-        public async Task<IEnumerable<CustomerDto>> GetAllCustomers()
+        public async Task<IEnumerable<CustomerDto>> GetAllCustomersAsync()
         {
             IEnumerable<CustomerDto> customers = await _context.Customers
                                                             .Where(c => !c.IsDeleted)
@@ -59,7 +59,7 @@ namespace CustomerApi.Data.InMemory
         /// </summary>
         /// <param name="customerId">Id of the customer to look for.</param>
         /// <returns><see cref="Task{CustomerDto}"/></returns>
-        public async Task<CustomerDto> GetCustomer(Guid customerId)
+        public async Task<CustomerDto> GetCustomerAsync(Guid customerId)
         {
             CustomerDto customer = await _context.Customers.SingleOrDefaultAsync(c => c.CustomerId == customerId && !c.IsDeleted);
 
@@ -71,7 +71,7 @@ namespace CustomerApi.Data.InMemory
         /// </summary>
         /// <param name="searchPhrase">The search terms.</param>
         /// <returns><see cref="Task{IEnumerable{CustomerDto}}"/></returns>
-        public async Task<IEnumerable<CustomerDto>> SearchCustomers(string searchPhrase)
+        public async Task<IEnumerable<CustomerDto>> SearchCustomersAsync(string searchPhrase)
         {
             IEnumerable<CustomerDto> customers = await _context.Customers
                                                      .Where(c => !c.IsDeleted 

@@ -11,8 +11,8 @@ namespace CustomerApi.Abstractions.Interfaces
         Task AddCustomerAsync(CustomerDto customer);
         Task UpdateCustomerAsync(CustomerDto customer);
         Task DeleteCustomerAsync(CustomerDto customer);
-        Task<CustomerDto> GetCustomer(Guid customerId);
-        Task<IEnumerable<CustomerDto>> SearchCustomers(string searchPhrase);
-        Task<IEnumerable<CustomerDto>> GetAllCustomers();
+        Task<CustomerDto> GetCustomerAsync(Guid customerId);
+        Task<IEnumerable<CustomerDto>> SearchCustomersAsync(string searchPhrase);
+        Task<IEnumerable<CustomerDto>> GetAllCustomersAsync();
     }
 }
