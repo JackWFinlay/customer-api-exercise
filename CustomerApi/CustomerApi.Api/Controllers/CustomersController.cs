@@ -30,7 +30,16 @@ namespace CustomerApi.Api.Controllers
 
         public async Task<ActionResult<IEnumerable<CustomerModel>>> Get()
         {
-            return await GetOrThrowErrorAsync(_customerBusinessLayer.GetAllCustomersAsync());
+            try
+            {
+                return Ok(await _customerBusinessLayer.GetAllCustomersAsync());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation(ex, "Exception occured getting customers");
+                return BadRequest();
+            }
+
         }
 
         // GET /customers/0f32959d-0e54-47f2-9da4-d6c0a52ca070
@@ -39,7 +48,15 @@ namespace CustomerApi.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<CustomerModel>> Get(Guid id)
         {
-            return await _customerBusinessLayer.GetCustomerAsync(id);
+            try
+            {
+                return Ok(await _customerBusinessLayer.GetCustomerAsync(id));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation(ex, $"Exception occured getting customer {id}");
+                return BadRequest();
+            }
         }
 
         // GET /customers/search?searchPhrase=Jack
@@ -49,24 +66,33 @@ namespace CustomerApi.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IEnumerable<CustomerModel>>> Search([FromQuery] string searchPhrase)
         {
-            return await GetOrThrowErrorAsync(_customerBusinessLayer.SearchCustomersAsync(searchPhrase), searchPhrase);
+            try
+            {
+                return Ok(await _customerBusinessLayer.SearchCustomersAsync(searchPhrase));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation(ex, $"Error occured for search term '{searchPhrase}'");
+                return BadRequest();
+            }
         }
 
         // POST /customers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status202Accepted)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> Post([FromBody] CustomerModel customer)
+        public async Task<ActionResult> Post([FromBody] CustomerInputModel customer)
         {
             try
             {
-                await _customerBusinessLayer.AddCustomerAsync(customer);
+                CustomerModel customerModel = (CustomerModel)customer;
+                await _customerBusinessLayer.AddCustomerAsync(customerModel);
                 return Accepted();
             }
             catch (ArgumentException ex)
             {
                 _logger.LogError(ex, "Error adding customer");
-                return BadRequest("Could not add customer");
+                return BadRequest();
             }
         }
 
@@ -74,46 +100,35 @@ namespace CustomerApi.Api.Controllers
         [HttpPut("{customerId}")]
         [ProducesResponseType(StatusCodes.Status202Accepted)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task Put(Guid customerId, [FromBody] CustomerModel customer)
+        public async Task<ActionResult> Put(Guid customerId, [FromBody] CustomerInputModel customer)
         {
             try
             {
-                await _customerBusinessLayer.UpdateCustomerAsync(customerId, customer);
-                Accepted();
+                CustomerModel customerModel = (CustomerModel)customer;
+                await _customerBusinessLayer.UpdateCustomerAsync(customerId, customerModel);
+                return Accepted();
             }
             catch (ArgumentException ex)
             {
                 _logger.LogError(ex, "Error updating customer");
-                BadRequest($"Could not update customer {customerId}");
+                return BadRequest();
             }
         }
 
         // DELETE /customers/0F906772-CADA-40A7-BD59-B47DDD1C75B0
         [HttpDelete("{id}")]
-        [ProducesResponseType(StatusCodes.Status202Accepted)]
-        public async Task Delete(Guid id)
-        {
-            await _customerBusinessLayer.DeleteCustomerAsync(id);
-            Accepted();
-        }
-
-        private async Task<ActionResult<IEnumerable<CustomerModel>>> GetOrThrowErrorAsync(Task<IEnumerable<CustomerModel>> task, string searchPhrase = null)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> Delete(Guid id)
         {
             try
             {
-                return Ok(await task);
+                await _customerBusinessLayer.DeleteCustomerAsync(id);
+                return NoContent();
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
-                if (searchPhrase != null)
-                {
-                    _logger.LogInformation(ex, $"Exception occured getting customers for search term '{searchPhrase}'");
-                }
-                else
-                {
-                    _logger.LogInformation(ex, "Exception occured getting customers");
-                }
-
+                _logger.LogInformation(ex, $"Cannot delete non-existent customer {id}");
                 return BadRequest();
             }
         }

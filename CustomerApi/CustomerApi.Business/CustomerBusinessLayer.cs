@@ -37,7 +37,7 @@ namespace CustomerApi.Business
 
                 if (existingCustomer != null)
                 {
-                    throw new ArgumentException($"Existing customer for customterId {customerDto.CustomerId}, do not specify customerId if you want one to be generated for you.");
+                    throw new ArgumentException($"Existing customer for customerId {customerDto.CustomerId}, do not specify customerId if you want one to be generated for you.");
                 }
             }
 
@@ -59,7 +59,7 @@ namespace CustomerApi.Business
 
             if (foundCustomer == null)
             {
-                throw new ArgumentException($"Supplied Customer does not exist for Id {customer.CustomerId}. Perhaps you wanted to call Add Customer instead?");
+                throw new ArgumentException($"Supplied Customer does not exist for Id {customerId}. Perhaps you wanted to call Add Customer instead?");
             }
 
             // Ideally we would do this another way, but there is only a few fields to map, so this is faster.
@@ -86,6 +86,11 @@ namespace CustomerApi.Business
                 customerDto.IsDeleted = true;
                 await _storageProvider.DeleteCustomerAsync(customerDto);
             }
+            else
+            {
+                throw new ArgumentException($"Customer {customerId} does not exist.");
+            }
+
         }
 
         /// <summary>
